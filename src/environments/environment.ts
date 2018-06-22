@@ -3,7 +3,11 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  SERVER_URL: `http://223.105.5.116:9090/`,
+  production: false,
+  useHash: true,
+  appType: "CMS",
+  apikey: 'ENsbus03E025Mmu7yPZQUtNNpkpzhjVt'
 };
 
 /*
@@ -13,3 +17,4 @@ export const environment = {
  * because it will have performance impact when throw error
  */
 // import 'zone.js/dist/zone-error';  // Included with Angular CLI.
+

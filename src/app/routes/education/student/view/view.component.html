@@ -1,0 +1,82 @@
+<div class="modal-header">
+  <div class="modal-title">{{i.id > 0 ? '编辑' : '添加'}}-贫困生信息</div>
+</div>
+<form #f="ngForm" (ngSubmit)="save()" nz-form>
+  <nz-form-item class="mb-sm">
+    <nz-form-label nzSpan="4">所属地区</nz-form-label>
+    <nz-form-control nzSpan="8">
+      {{i.city}}
+      <a (click)="msgSrv.info('find')">查找地区</a>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item class="mb-sm">
+    <nz-form-label nzSpan="4">姓名</nz-form-label>
+    <nz-form-control nzSpan="8">
+      <input nz-input [(ngModel)]="i.name" name="name" maxlength="30" required />
+      <p nz-form-explain>如：梁涛、马瑛</p>
+    </nz-form-control>
+    <nz-form-label nzSpan="4">年龄</nz-form-label>
+    <nz-form-control nzSpan="8">
+      <nz-input-number [(ngModel)]="i.age" [nzMax]="120" [nzMin]="1" name="age"></nz-input-number>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item class="mb-sm">
+    <nz-form-label nzSpan="4">性别</nz-form-label>
+    <nz-form-control nzSpan="8">
+      <nz-select [(ngModel)]="i.sex" required [nzAllowClear]="false" nzPlaceHolder="男" name="sex">
+        <nz-option *ngFor="let i of sexes" [nzLabel]="i" [nzValue]="i">
+        </nz-option>
+      </nz-select>
+    </nz-form-control>
+    <nz-form-label nzSpan="4">学校编号</nz-form-label>
+    <nz-form-control nzSpan="8">
+      <input nz-input [(ngModel)]="i.schoolId" name="schoolId" maxlength="50" required />
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item class="mb-sm">
+    <nz-form-label nzSpan="4">学校名称</nz-form-label>
+    <nz-form-control nzSpan="8">
+      <input nz-input [(ngModel)]="i.schoolName" name="schoolName" required />
+    </nz-form-control>
+    <nz-form-label nzSpan="4">省份</nz-form-label>
+    <nz-form-control nzSpan="8">
+      <input nz-input [(ngModel)]="i.province" name="province" required />
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item class="mb-sm">
+    <nz-form-label nzSpan="4">地市</nz-form-label>
+    <nz-form-control nzSpan="8">
+      <input nz-input [(ngModel)]="i.city" name="city" maxlength="30" required />
+    </nz-form-control>
+    <nz-form-label nzSpan="4">住址</nz-form-label>
+    <nz-form-control nzSpan="8">
+      <input nz-input [(ngModel)]="i.address" name="address" maxlength="30" required />
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item class="mb-sm">
+    <nz-form-label nzSpan="4">联系电话</nz-form-label>
+    <nz-form-control nzSpan="8">
+      <input nz-input [(ngModel)]="i.phone" name="phone" maxlength="200" placeholder="200字以内" />
+    </nz-form-control>
+    <nz-form-label nzSpan="4">贫困等级</nz-form-label>
+    <nz-form-control nzSpan="8">
+      <nz-select [(ngModel)]="i.level" required [nzAllowClear]="false" nzPlaceHolder="一般贫困" name="level">
+        <nz-option *ngFor="let i of levels" [nzLabel]="i" [nzValue]="i">
+        </nz-option>
+      </nz-select>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item class="mb-sm">
+    <nz-form-label nzSpan="4">年级</nz-form-label>
+    <nz-form-control nzSpan="8">
+      <nz-select [(ngModel)]="i.grade" required [nzAllowClear]="false" nzPlaceHolder="小学一年级" name="grade">
+        <nz-option *ngFor="let i of grades" [nzLabel]="i" [nzValue]="i">
+        </nz-option>
+      </nz-select>
+    </nz-form-control>
+  </nz-form-item>
+  <div class="modal-footer">
+    <button nz-button type="button" (click)="close()">关闭</button>
+    <button nz-button [disabled]="!f.form.valid || !f.form.dirty" [nzLoading]="loading" [nzType]="'primary'">保存</button>
+  </div>
+</form>
