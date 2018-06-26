@@ -33,10 +33,11 @@ export class InitializationService {
   public initial(): void {
     const tokenData = this.tokenService.get();
     const roleId = tokenData.roleId;
+    const permissionIds = tokenData.permissionIds;
 
     this.setStrategies();
-    this.setMenu(roleId);
-    this.setAcl(roleId);
+    this.setMenus();
+    this.setPrivileges(roleId, permissionIds);
   }
 
   public login(userName?: string, password?: string, mobile?: string): Observable<any> {
@@ -73,14 +74,17 @@ export class InitializationService {
     this.purgeAuth();
   }
 
+  /**
+   * 方法：设置策略，包括应用系统信息、
+   */
   private setStrategies(): void {
     this.httpClient
       .get(`${environment.SERVER_URL}strategies\\application`,
-        null,
+        {params: null},
         {headers: this.commonService.setHeaders()}
       )
       .pipe(
-        catchError(err => of(err))
+        catchError(error => this.commonService.handleError(error))
       )
       .subscribe(
         strategy => {
@@ -90,70 +94,91 @@ export class InitializationService {
       );
   }
 
-  private setMenu(roleId: string): void {
+  /**
+   * 方法：设置菜单
+   */
+  private setMenus(): void {
     this.httpClient
       .get(
-        `${environment.SERVER_URL}menu\\${roleId}`,
-        null,
+        `${environment.SERVER_URL}menus\\${environment.appType}`,
+        {params: null},
         {headers: this.commonService.setHeaders()}
       )
       .pipe(
-        catchError(err => of(err))
+        catchError(error => this.commonService.handleError(error))
       )
       .subscribe(
         menu => this.menuService.add(menu)
       );
   }
 
-  private setAcl(roleId: string): void {
-    this.httpClient
-      .get(
-        `${environment.SERVER_URL}acl\\${roleId}`,
-        null,
-        {headers: this.commonService.setHeaders()}
-      )
-      .pipe(
-        catchError(err => of(err))
-      )
-      .subscribe(
-        acl => this.aclService.add(acl)
-      )
-  }
-
+  /**
+   * 方法：设置各类参数，包括token、当前用户和角色权限等。
+   * @param data 登录后返回的session数据
+   */
   private setParameters(data: any): void {
     this.httpClient
       .get(
         `${environment.SERVER_URL}users\\${data.userId}`,
-        null,
+        {params: null},
         {headers: this.commonService.setHeaders()}
       )
       .pipe(
-        catchError(err => of(err))
+        catchError(error => this.commonService.handleError(error))
       )
       .subscribe(
         user => {
+          //1、设置token
           this.tokenService.clear();
 
           this.tokenService.set({
             token: data.token,
             sessionId: data.sessionId,
             userId: data.userId,
-            roleId: user.roleId,
+            roleIds: user.roleIds,
+            permissionIds: user.permissionIds,
             affiliations: user.affiliations,
             loginTime: new Date().getTime(),
             lifeTime: data.lifeTime
           });
 
+          //2、发射用户
           this.setAuth(user);
         }
       )
   }
 
+  private setPrivileges(roleIds: string[], permissionIds: number[]): void {
+    var params = {roleIds: roleIds, appType: `${environment.appType}`};
+    var abilities = permissionIds;
+
+    this.httpClient
+      .get(
+        `${environment.SERVER_URL}privileges\\roles`,
+        {params: params},
+        {headers: this.commonService.setHeaders()}
+      )
+      .pipe(
+        catchError(error => this.commonService.handleError(error))
+      )
+      .scan((role, ability) => ability.concat(role.permissionIds), abilities)
+      .subscribe(
+        () => this.aclService.setAbility(abilities)
+      )
+  }
+
+  /**
+   * 方法：设置鉴权信息
+   * @param {User} user
+   */
   private setAuth(user: User) {
     this.currentUserSubject.next(user);
     this.isAuthenticatedSubject.next(true);
   }
 
+  /**
+   * 方法：清理鉴权信息
+   */
   private purgeAuth() {
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
