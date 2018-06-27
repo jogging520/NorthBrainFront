@@ -8,9 +8,8 @@ import {catchError, map, scan} from "rxjs/internal/operators";
 import {environment} from "@env/environment";
 import {CommonService} from "@shared/services/common.service";
 import {HttpClient} from "@angular/common/http";
-import {of} from "rxjs/index";
 import {Role} from "@shared/models/role";
-import {map} from "rxjs/operators";
+import { flatMap } from 'rxjs/operators';
 
 /**
  * 用于应用启动时
@@ -91,7 +90,7 @@ export class StartupService {
           params: params}
       )
       .pipe(
-        flatMap(role => role),
+        flatMap((role: Role) => role),
         map((role: Role) => role.permissionIds),
         scan((ability, permissionId) => {
           for(let id in permissionId) {
