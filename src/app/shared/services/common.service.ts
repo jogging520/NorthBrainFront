@@ -32,6 +32,7 @@ export class CommonService {
       case 200:
         break;
       case 401:
+        console.error(error);
         this.router.navigate(['/passport/login']);
         break;
       default:

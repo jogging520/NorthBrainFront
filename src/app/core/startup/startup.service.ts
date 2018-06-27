@@ -1,7 +1,13 @@
 import { Injectable, Injector, Inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { DA_SERVICE_TOKEN, ITokenService } from '@delon/auth';
-import {InitializationService} from "@shared/services/initialization.service";
+import {Strategy} from "@shared/models/strategy";
+import {_HttpClient, MenuService, SettingsService, TitleService} from "@delon/theme";
+import {ACLService} from "@delon/acl";
+import {catchError} from "rxjs/internal/operators";
+import {environment} from "@env/environment";
+import {CommonService} from "@shared/services/common.service";
+import {HttpClient} from "@angular/common/http";
 
 /**
  * 用于应用启动时
@@ -12,20 +18,82 @@ export class StartupService {
   constructor(
     @Inject(DA_SERVICE_TOKEN) private tokenService: ITokenService,
     private injector: Injector,
-    private initializationService: InitializationService
+    private menuService: MenuService,
+    private settingService: SettingsService,
+    private aclService: ACLService,
+    private titleService: TitleService,
+    private httpClient: HttpClient,
+    private commonService: CommonService,
   ) { }
 
   private initial(resolve: any, reject: any) {
     const tokenData = this.tokenService.get();
     const currentTime = new Date().getTime();
 
+    //如果没有登录或者已经超过登录时间，那么重定向到登录页面。
     if (!tokenData.token || currentTime - tokenData.loginTime > tokenData.lifeTime) {
       this.injector.get(Router).navigateByUrl('/passport/login');
       resolve({});
       return;
     }
 
-    this.initializationService.initial();
+    this.httpClient
+      .get(`${environment.SERVER_URL}strategies\\application`,
+        {headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          'apikey': `${environment.apikey}`
+        }}
+      )
+      .pipe(
+        catchError(error => this.commonService.handleError(error))
+      )
+      .flatMap(strategy => strategy)
+      .subscribe(
+        (strategy: Strategy) => {
+          this.settingService.setApp({name: strategy.parameters.name[0], description: strategy.parameters.description[0]});
+          this.titleService.suffix = strategy.parameters.name;
+        }
+      );
+
+    this.httpClient
+      .get(
+        `${environment.SERVER_URL}menus\\${environment.appType}`,
+        {headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          'apikey': `${environment.apikey}`
+        }}
+      )
+      .pipe(
+        catchError(error => this.commonService.handleError(error))
+      )
+      .subscribe(
+        menu => this.menuService.add(menu)
+      );
+
+    const roleIds = tokenData.roleIds;
+    const permissionIds = tokenData.permissionIds;
+
+    var params = {roleIds: roleIds.join(), appType: `${environment.appType}`};
+    var abilities = permissionIds;
+
+    this.httpClient
+      .get(
+        `${environment.SERVER_URL}privileges\\roles`,
+        {headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          'apikey': `${environment.apikey}`},
+          params: params}
+      )
+      .pipe(
+        catchError(error => this.commonService.handleError(error))
+      )
+      .scan((role, ability) => ability.concat(role.permissionIds), abilities)
+      .subscribe(
+        () => this.aclService.setAbility(abilities)
+      )
 
     resolve({});
   }

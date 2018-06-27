@@ -33,10 +33,6 @@ export class UserLoginComponent implements OnDestroy {
     private modalSrv: NzModalService,
     private settingsService: SettingsService,
     private socialService: SocialService,
-    @Optional()
-    @Inject(ReuseTabService)
-    private reuseTabService: ReuseTabService,
-    private startupSrv: StartupService,
     private initializationService: InitializationService
   ) {
     this.form = fb.group({
@@ -104,14 +100,7 @@ export class UserLoginComponent implements OnDestroy {
     this.loading = true;
 
     this.initializationService
-      .login(this.userName.value, this.password.value, this.mobile.value)
-      .subscribe(data => {
-          this.reuseTabService.clear();
-
-          this.startupSrv.load().then(() => this.router.navigate(['/']));
-        },
-        error => console.log(error)
-      );
+      .login(this.userName.value, this.password.value, this.mobile.value);
 
     /*
     setTimeout(() => {
