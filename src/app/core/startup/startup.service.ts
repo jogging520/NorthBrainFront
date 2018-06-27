@@ -2,12 +2,15 @@ import { Injectable, Injector, Inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { DA_SERVICE_TOKEN, ITokenService } from '@delon/auth';
 import {Strategy} from "@shared/models/strategy";
-import {_HttpClient, MenuService, SettingsService, TitleService} from "@delon/theme";
+import {MenuService, SettingsService, TitleService} from "@delon/theme";
 import {ACLService} from "@delon/acl";
-import {catchError} from "rxjs/internal/operators";
+import {catchError, map, scan} from "rxjs/internal/operators";
 import {environment} from "@env/environment";
 import {CommonService} from "@shared/services/common.service";
 import {HttpClient} from "@angular/common/http";
+import {of} from "rxjs/index";
+import {Role} from "@shared/models/role";
+import {map} from "rxjs/operators";
 
 /**
  * 用于应用启动时
@@ -51,7 +54,7 @@ export class StartupService {
       .flatMap(strategy => strategy)
       .subscribe(
         (strategy: Strategy) => {
-          this.settingService.setApp({name: strategy.parameters.name[0], description: strategy.parameters.description[0]});
+          this.settingService.setApp({name: strategy.parameters.name, description: strategy.parameters.description});
           this.titleService.suffix = strategy.parameters.name;
         }
       );
@@ -88,11 +91,22 @@ export class StartupService {
           params: params}
       )
       .pipe(
+        flatMap(role => role),
+        map((role: Role) => role.permissionIds),
+        scan((ability, permissionId) => {
+          for(let id in permissionId) {
+            if(ability.indexOf(permissionId[id]) == -1)
+              ability.push(permissionId[id]);
+          }
+          return ability;
+          }, abilities),
         catchError(error => this.commonService.handleError(error))
       )
-      .scan((role, ability) => ability.concat(role.permissionIds), abilities)
       .subscribe(
-        () => this.aclService.setAbility(abilities)
+        () => {
+          console.log(abilities);
+          this.aclService.setAbility(abilities);
+        }
       )
 
     resolve({});
