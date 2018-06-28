@@ -4,12 +4,11 @@ import { DA_SERVICE_TOKEN, ITokenService } from '@delon/auth';
 import {Strategy} from "@shared/models/strategy";
 import {MenuService, SettingsService, TitleService} from "@delon/theme";
 import {ACLService} from "@delon/acl";
-import {catchError, map, scan} from "rxjs/internal/operators";
+import {catchError, map, scan, flatMap} from "rxjs/operators";
 import {environment} from "@env/environment";
 import {CommonService} from "@shared/services/common.service";
 import {HttpClient} from "@angular/common/http";
 import {Role} from "@shared/models/role";
-import { flatMap } from 'rxjs/operators';
 
 /**
  * 用于应用启动时
@@ -39,18 +38,23 @@ export class StartupService {
       return;
     }
 
+    let headers = {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      'apikey': `${environment.apikey}`
+      };
+
     this.httpClient
       .get(`${environment.SERVER_URL}strategies\\application`,
-        {headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          'apikey': `${environment.apikey}`
-        }}
+        {headers: headers}
       )
       .pipe(
-        catchError(error => this.commonService.handleError(error))
+        flatMap((strategy: any) => strategy),
+        catchError(error => {
+          resolve(null);
+          return this.commonService.handleError(error)
+        })
       )
-      .flatMap(strategy => strategy)
       .subscribe(
         (strategy: Strategy) => {
           this.settingService.setApp({name: strategy.parameters.name, description: strategy.parameters.description});
@@ -61,14 +65,13 @@ export class StartupService {
     this.httpClient
       .get(
         `${environment.SERVER_URL}menus\\${environment.appType}`,
-        {headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          'apikey': `${environment.apikey}`
-        }}
+        {headers: headers}
       )
       .pipe(
-        catchError(error => this.commonService.handleError(error))
+        catchError(error => {
+          resolve(null);
+          return this.commonService.handleError(error)
+        })
       )
       .subscribe(
         menu => this.menuService.add(menu)
@@ -77,29 +80,29 @@ export class StartupService {
     const roleIds = tokenData.roleIds;
     const permissionIds = tokenData.permissionIds;
 
-    var params = {roleIds: roleIds.join(), appType: `${environment.appType}`};
-    var abilities = permissionIds;
+    let params = {roleIds: roleIds.join(), appType: `${environment.appType}`};
+    let abilities = permissionIds;
 
     this.httpClient
       .get(
         `${environment.SERVER_URL}privileges\\roles`,
-        {headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          'apikey': `${environment.apikey}`},
+        {headers: headers,
           params: params}
       )
       .pipe(
-        flatMap((role: Role) => role),
+        flatMap((role: any) => role),
         map((role: Role) => role.permissionIds),
-        scan((ability, permissionId) => {
-          for(let id in permissionId) {
-            if(ability.indexOf(permissionId[id]) == -1)
-              ability.push(permissionId[id]);
+        scan((ability, permissionIds) => {
+          for(let index in permissionIds) {
+            if(ability.indexOf(permissionIds[index]) == -1)
+              ability.push(permissionIds[index]);
           }
           return ability;
           }, abilities),
-        catchError(error => this.commonService.handleError(error))
+        catchError(error => {
+          resolve(null);
+          return this.commonService.handleError(error)
+        })
       )
       .subscribe(
         () => {
@@ -110,7 +113,6 @@ export class StartupService {
 
     resolve({});
   }
-
 
 
   load(): Promise<any> {

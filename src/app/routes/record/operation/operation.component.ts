@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import {RegionService} from "@shared/services/region.service";
 import {User} from "@shared/models/user";
 import {InitializationService} from "@shared/services/initialization.service";
+import {NzMessageService} from "ng-zorro-antd";
 
   @Component({
     selector: 'app-record-operation',
@@ -17,7 +18,8 @@ import {InitializationService} from "@shared/services/initialization.service";
 
     constructor(
       private regionService: RegionService,
-      private initializationService: InitializationService
+      private initializationService: InitializationService,
+      public messageService: NzMessageService,
     ) { }
 
     ngOnInit(): void {
@@ -35,6 +37,10 @@ import {InitializationService} from "@shared/services/initialization.service";
     onChanges(values: any): void {
       console.log(this.options);
       console.log(values, this.values);
+    }
+
+    onClose(): void {
+      this.messageService.success("测试权限");
     }
 
   }
