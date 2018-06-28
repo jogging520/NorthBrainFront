@@ -9,6 +9,7 @@ import {environment} from "@env/environment";
 import {CommonService} from "@shared/services/common.service";
 import {HttpClient} from "@angular/common/http";
 import {Role} from "@shared/models/role";
+import {CacheService} from "@delon/cache";
 
 /**
  * 用于应用启动时
@@ -23,6 +24,7 @@ export class StartupService {
     private settingService: SettingsService,
     private aclService: ACLService,
     private titleService: TitleService,
+    private cacheService: CacheService,
     private httpClient: HttpClient,
     private commonService: CommonService,
   ) { }
@@ -31,7 +33,7 @@ export class StartupService {
     const tokenData = this.tokenService.get();
     const currentTime = new Date().getTime();
 
-    //如果没有登录或者已经超过登录时间，那么重定向到登录页面。
+    //1、如果没有登录或者已经超过登录时间，那么重定向到登录页面。
     if (!tokenData.token || currentTime - tokenData.loginTime > tokenData.lifeTime) {
       this.injector.get(Router).navigateByUrl('/passport/login');
       resolve({});
@@ -39,11 +41,12 @@ export class StartupService {
     }
 
     let headers = {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
       'apikey': `${environment.apikey}`
       };
 
+    //2、获取应用程序相关信息并设置
     this.httpClient
       .get(`${environment.SERVER_URL}strategies\\application`,
         {headers: headers}
@@ -62,6 +65,25 @@ export class StartupService {
         }
       );
 
+    //3、获取错误码相关信息，并缓存
+    this.httpClient
+      .get(`${environment.SERVER_URL}strategies\\errorcode`,
+        {headers: headers}
+      )
+      .pipe(
+        flatMap((strategy: any) => strategy),
+        catchError(error => {
+          resolve(null);
+          return this.commonService.handleError(error)
+        })
+      )
+      .subscribe(
+        (strategy: Strategy) => {
+          this.cacheService.set('errorcode', strategy.parameters);
+        }
+      );
+
+    //4、获取菜单相关信息并设置
     this.httpClient
       .get(
         `${environment.SERVER_URL}menus\\${environment.appType}`,
@@ -77,6 +99,7 @@ export class StartupService {
         menu => this.menuService.add(menu)
       );
 
+    //5、获取角色权限信息，并设置
     const roleIds = tokenData.roleIds;
     const permissionIds = tokenData.permissionIds;
 
@@ -93,9 +116,9 @@ export class StartupService {
         flatMap((role: any) => role),
         map((role: Role) => role.permissionIds),
         scan((ability, permissionIds) => {
-          for(let index in permissionIds) {
-            if(ability.indexOf(permissionIds[index]) == -1)
-              ability.push(permissionIds[index]);
+          for(let permissionId of permissionIds) {
+            if(ability.indexOf(permissionId) == -1)
+              ability.push(permissionId);
           }
           return ability;
           }, abilities),
@@ -106,7 +129,6 @@ export class StartupService {
       )
       .subscribe(
         () => {
-          console.log(abilities);
           this.aclService.setAbility(abilities);
         }
       )
