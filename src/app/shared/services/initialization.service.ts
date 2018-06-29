@@ -29,7 +29,7 @@ export class InitializationService {
     @Optional()
     @Inject(ReuseTabService)
     private reuseTabService: ReuseTabService,
-    private startupSrv: StartupService,
+    private startupService: StartupService,
     @Inject(DA_SERVICE_TOKEN) private tokenService: TokenService,
     private settingService: SettingsService
   ) { }
@@ -86,7 +86,7 @@ export class InitializationService {
         () => {
           this.reuseTabService.clear();
 
-          this.startupSrv.load().then(() => this.router.navigate(['/']));
+          this.startupService.load().then(() => this.router.navigate(['/']));
         }
       )
   }

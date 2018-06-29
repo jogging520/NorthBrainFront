@@ -1,12 +1,8 @@
-<page-header>测试学生</page-header>
-<div class="content__title"  *showAuthed="true">
-  <h1>贫困生管理
-    <small>为
-      <code>甘肃省教育厅</code> 实现。</small>
-  </h1>
-</div>
+<div class="content__title">
 
-<nz-card  *showAuthed="true">
+</div>
+<nz-card>
+
   <button nz-button (click)="add()" [nzType]="'primary'">添加</button>
   <simple-table #st class="simple-table" [columns]="columns" [data]="students" [extraParams]="s"></simple-table>
 </nz-card>

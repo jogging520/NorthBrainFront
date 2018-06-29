@@ -44,7 +44,7 @@ export class StartupService {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       'apikey': `${environment.apikey}`
-      };
+    };
 
     //2、获取应用程序相关信息并设置
     this.httpClient
@@ -66,6 +66,7 @@ export class StartupService {
       );
 
     //3、获取错误码相关信息，并缓存
+    this.cacheService.remove('errorcode');
     this.httpClient
       .get(`${environment.SERVER_URL}strategies\\errorcode`,
         {headers: headers}
@@ -83,23 +84,11 @@ export class StartupService {
         }
       );
 
-    //4、获取菜单相关信息并设置
-    this.httpClient
-      .get(
-        `${environment.SERVER_URL}menus\\${environment.appType}`,
-        {headers: headers}
-      )
-      .pipe(
-        catchError(error => {
-          resolve(null);
-          return this.commonService.handleError(error)
-        })
-      )
-      .subscribe(
-        menu => this.menuService.add(menu)
-      );
+    //4、获取角色权限信息，并设置；获取菜单相关信息并设置（必须在权限读取完之后设置菜单）
+    this.aclService.removeAbility(this.aclService.data.abilities);
+    this.aclService.removeRole(this.aclService.data.roles);
+    this.menuService.clear();
 
-    //5、获取角色权限信息，并设置
     const roleIds = tokenData.roleIds;
     const permissionIds = tokenData.permissionIds;
 
@@ -121,7 +110,7 @@ export class StartupService {
               ability.push(permissionId);
           }
           return ability;
-          }, abilities),
+        }, abilities),
         catchError(error => {
           resolve(null);
           return this.commonService.handleError(error)
@@ -131,6 +120,28 @@ export class StartupService {
         () => {
           this.aclService.setAbility(abilities);
           console.info(this.aclService.data);
+        },
+        () => {
+          resolve(null);
+        },
+        () => {
+          this.httpClient
+            .get(
+              `${environment.SERVER_URL}menus\\${environment.appType}`,
+              {headers: headers}
+            )
+            .pipe(
+              catchError(error => {
+                resolve(null);
+                return this.commonService.handleError(error)
+              })
+            )
+            .subscribe(
+              menu => {
+                this.menuService.add(menu);
+                console.info(this.menuService.menus);
+              }
+            );
         }
       )
 
