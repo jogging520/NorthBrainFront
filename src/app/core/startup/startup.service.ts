@@ -130,6 +130,7 @@ export class StartupService {
       .subscribe(
         () => {
           this.aclService.setAbility(abilities);
+          console.info(this.aclService.data);
         }
       )
 
