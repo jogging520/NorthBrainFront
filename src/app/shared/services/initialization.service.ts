@@ -1,5 +1,5 @@
 import {Inject, Injectable, Optional} from '@angular/core';
-import {_HttpClient} from "@delon/theme";
+import {_HttpClient, SettingsService} from "@delon/theme";
 import {CommonService} from "@shared/services/common.service";
 import {environment} from "@env/environment";
 import {mergeMap, catchError, map} from "rxjs/operators";
@@ -31,6 +31,7 @@ export class InitializationService {
     private reuseTabService: ReuseTabService,
     private startupSrv: StartupService,
     @Inject(DA_SERVICE_TOKEN) private tokenService: TokenService,
+    private settingService: SettingsService
   ) { }
 
   public login(userName?: string, password?: string, mobile?: string): void {
@@ -68,6 +69,11 @@ export class InitializationService {
                   permissionIds: user.permissionIds,
                   affiliations: user.affiliations
                 });
+
+                this.settingService.setUser({
+                  name: user.realName,
+                  avatar: user.avatar,
+                  email: user.emails[0]});
 
                 this.setAuth(user);
               }),
