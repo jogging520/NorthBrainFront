@@ -18,19 +18,22 @@ import { Exception403Component } from './exception/403.component';
 import { Exception404Component } from './exception/404.component';
 import { Exception500Component } from './exception/500.component';
 import {AuthGuard} from "@shared/guards/auth.guard";
+import {ACLGuard} from "@delon/acl";
+
 
 const routes: Routes = [
   {
     path: '',
     component: LayoutDefaultComponent,
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full', canActivate: [AuthGuard] },
-      { path: 'dashboard', component: DashboardComponent, data: { title: '仪表盘', titleI18n: 'dashboard' }, canActivate: [AuthGuard] },
+      //注意：dashboard不能设置ACLGuard，因为他是所有重定向的页面，要不然会出现白屏。
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: DashboardComponent, data: { title: '仪表盘', titleI18n: 'dashboard', guard: 80100001 }, canLoad: [ ACLGuard ] },
       // 业务子模块
       // { path: 'widgets', loadChildren: './widgets/widgets.module#WidgetsModule' }
-      { path: 'education', loadChildren: './education/education.module#EducationModule'},
-      { path: 'record', loadChildren: './record/record.module#RecordModule'},
-      { path: 'profile', loadChildren: './profile/profile.module#ProfileModule'}
+      { path: 'education', loadChildren: './education/education.module#EducationModule', canLoad: [ ACLGuard ], data: { guard: 80100001 }},
+      { path: 'record', loadChildren: './record/record.module#RecordModule', canLoad: [ ACLGuard ], data: { guard: 90100001 }},
+      { path: 'profile', loadChildren: './profile/profile.module#ProfileModule', canLoad: [ ACLGuard ], data: { guard: 90100001 }}
     ]
   },
   // 全屏布局
