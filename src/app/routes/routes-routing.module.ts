@@ -33,7 +33,9 @@ const routes: Routes = [
       // { path: 'widgets', loadChildren: './widgets/widgets.module#WidgetsModule' }
       { path: 'education', loadChildren: './education/education.module#EducationModule', canLoad: [ ACLGuard ], data: { guard: 80100001 }},
       { path: 'record', loadChildren: './record/record.module#RecordModule', canLoad: [ ACLGuard ], data: { guard: 90100001 }},
-      { path: 'profile', loadChildren: './profile/profile.module#ProfileModule', canLoad: [ ACLGuard ], data: { guard: 90100001 }}
+      { path: 'profile', loadChildren: './profile/profile.module#ProfileModule', canLoad: [ ACLGuard ], data: { guard: 90100001 }},
+      { path: 'system', loadChildren: './system/system.module#SystemModule', canLoad: [ ACLGuard ], data: { guard: 50100001 }},
+      { path: 'poor', loadChildren: './poor/poor.module#PoorModule', canLoad: [ ACLGuard ], data: { guard: 40100001 }},
     ]
   },
   // 全屏布局

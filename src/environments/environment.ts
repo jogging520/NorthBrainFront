@@ -6,7 +6,9 @@ export const environment = {
   SERVER_URL: `http://223.105.5.116:9090/`,
   production: false,
   useHash: true,
-  appType: "cms",
+  appType: 'cms',
+  contentType: 'application/json',
+  accept: 'application/json',
   apikey: 'ENsbus03E025Mmu7yPZQUtNNpkpzhjVt'
 };
 

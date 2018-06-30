@@ -41,8 +41,8 @@ export class StartupService {
     }
 
     let headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      'Content-Type': `${environment.contentType}`,
+      'Accept': `${environment.accept}`,
       'apikey': `${environment.apikey}`
     };
 
