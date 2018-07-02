@@ -42,7 +42,7 @@
     <nz-list-item>
       <nz-card nzHoverable [nzCover]="cover">
         <ng-template #cover>
-          <img alt="{{item.name}}" src="/assets/tmp/img/bg3.jpg">
+          <img alt="{{item.name}}" src="{{item.picture}}">
         </ng-template>
         <nz-card-meta [nzTitle]="nzTitle" [nzDescription]="item.description">
           <ng-template #nzTitle>

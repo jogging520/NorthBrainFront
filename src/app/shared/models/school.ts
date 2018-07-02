@@ -5,5 +5,7 @@ export class School {
   regionId: string;
   masterName?: string;
   phone?: string;
+  avatar?: string;
+  picture?: string;
   description?: string;
 }

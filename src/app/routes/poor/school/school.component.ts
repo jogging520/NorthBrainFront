@@ -3,6 +3,7 @@ import { _HttpClient, ModalHelper } from '@delon/theme';
 import {NzMessageService} from "ng-zorro-antd";
 import {SchoolService} from "@shared/services/school.service";
 import {School} from "@shared/models/school";
+import {PictureService} from "@shared/services/picture.service";
 
 @Component({
   selector: 'app-poor-school',
@@ -27,7 +28,8 @@ export class PoorSchoolComponent implements OnInit {
 
   constructor(
     private schoolService: SchoolService,
-    public messageService: NzMessageService
+    public messageService: NzMessageService,
+    private pictureService: PictureService
   ) {}
 
   ngOnInit() {
@@ -41,7 +43,17 @@ export class PoorSchoolComponent implements OnInit {
       .subscribe((schools: School[]) => {
       this.schools = schools;},
         () => {this.loading = false;},
-      () => {this.loading = false;}
+      () => {
+      for(let school of this.schools) {
+        school.picture = "/assets/tmp/img/bg3.jpg";
+
+        this.pictureService
+          .queryPictureById(school.avatar)
+          .subscribe(picture => school.picture = `data:image/${picture.type};base64,${picture.content}`),
+          () => {this.loading = false;},
+          () => {this.loading = false;}
+      }
+      this.loading = false;}
     );
   }
 
