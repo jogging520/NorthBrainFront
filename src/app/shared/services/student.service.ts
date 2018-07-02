@@ -14,10 +14,10 @@ export class StudentService {
               private commonService: CommonService
   ) { }
 
-  public listing(): Observable<any[]> {
+  public listing(regionIds: string[]): Observable<any[]> {
     return this.httpClient.get(
-      `${environment.SERVER_URL}\student?appType=CMS&userId=kjlljlkl&sessionId=22323adsfa&organizationId=998823`,
-      null,
+      `${environment.SERVER_URL}\students`,
+      this.commonService.setParams({regionIds: regionIds}),
       {headers: this.commonService.setHeaders()}
     );
   }

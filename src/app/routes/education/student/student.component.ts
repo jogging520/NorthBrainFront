@@ -19,19 +19,11 @@ export class EducationStudentComponent implements OnInit {
   @ViewChild('st') st: SimpleTableComponent;
 
   columns: SimpleTableColumn[] = [
-    { title: '贫困生编号', index: 'studentId', width: '120px'},
+    { title: '贫困生编号', index: 'id', width: '120px'},
     { title: '姓名', index: 'name', width: '120px' },
-    { title: '年龄', index: 'age', width: '120px' },
-    { title: '性别', index: 'sex', width: '100px' },
-    { title: '学校编号', index: 'schoolId', width: '100px' },
-    { title: '学校名称', index: 'schoolName', width: '100px' },
-    { title: '省份', index: 'province', width: '100px' },
-    { title: '市', index: 'city', width: '100px' },
-    { title: '县区', index: 'county', width: '100px'},
-    { title: '住址', index: 'address', width: '100px' },
-    { title: '电话号码', index: 'phone', width: '100px' },
-    { title: '贫困等级', index: 'level', width: '100px' },
-    { title: '年级', index: 'grade', width: '100px' },
+    { title: '性别', index: 'gender', width: '100px' },
+    { title: '学校编号', index: 'nationality', width: '100px' },
+    { title: '学校名称', index: 'politics', width: '100px' },
     { title: '状态', index: 'status', width: '100px' },
     { title: '创建时间', index: 'createDate' , type: 'date', width: '100px'},
     { title: '状态时间', index: 'statusDate' , type: 'date', width: '100px'},
@@ -60,7 +52,7 @@ export class EducationStudentComponent implements OnInit {
 
   ngOnInit() {
     this.studentService
-      .listing()
+      .listing(["931"])
       .subscribe(student => this.students = student);
   }
 
