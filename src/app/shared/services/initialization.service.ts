@@ -39,20 +39,21 @@ export class InitializationService {
       .post(
         `${environment.SERVER_URL}login`,
         null,
-        {appType: environment.appType, userName: userName, password: password})
+        {appType: environment.appType, userName: userName, password: password},
+        {headers: this.commonService.setHeaders()})
       .pipe(
-        map((session: Token) => {
+        map((token: Token) => {
           this.tokenService.set({
-            token: session.jwt
+            token: token.jwt
           });
 
-          return session;
+          return token;
         }),
-        mergeMap((session: Token) => {
+        mergeMap((token: Token) => {
           return this.httpClient
             .get(
               `${environment.SERVER_URL}users`,
-              {userId: session.userId},
+              {userId: token.userId},
               {headers: this.commonService.setHeaders()}
             )
             .pipe(
@@ -60,11 +61,11 @@ export class InitializationService {
                 this.tokenService.clear();
 
                 this.tokenService.set({
-                  token: session.jwt,
-                  sessionId: session.sessionId,
-                  userId: session.userId,
+                  token: token.jwt,
+                  sessionId: token.sessionId,
+                  userId: token.userId,
                   loginTime: new Date().getTime(),
-                  lifeTime: session.lifeTime,
+                  lifeTime: token.lifeTime,
                   roleIds: user.roleIds,
                   permissionIds: user.permissionIds,
                   affiliations: user.affiliations

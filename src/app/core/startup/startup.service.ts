@@ -118,13 +118,14 @@ export class StartupService {
       )
       .subscribe(
         () => {
-          this.aclService.setAbility(abilities);
           console.info(this.aclService.data);
         },
         () => {
           resolve(null);
         },
         () => {
+          this.aclService.setAbility(abilities);
+
           this.httpClient
             .get(
               `${environment.SERVER_URL}menus\\${environment.appType}`,
